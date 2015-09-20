@@ -60,7 +60,7 @@
       unarchive: src=files/TheSpecifyWebPortal.zip dest=/tmp
 
     - name: move specify web portal files
-      raw: sudo cp -R /tmp/PortalApp/* /var/www/html
+      command: /bin/cp -R /tmp/PortalApp/* /var/www/html
 
     - name: move settings.json
       copy: src=files/settings.json dest=/var/www/html/resources/config
