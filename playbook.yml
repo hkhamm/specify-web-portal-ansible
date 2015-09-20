@@ -30,8 +30,9 @@
       - restart apache2
 
     # Solr
-    - name: download solr-4.2.1
-      local_action: get_url url=https://archive.apache.org/dist/lucene/solr/4.2.1/solr-4.2.1.tgz dest=files/solr-4.2.1.tgz
+    # - name: download solr-4.2.1
+    #   connection: local
+    #   get_url: url=https://archive.apache.org/dist/lucene/solr/4.2.1/solr-4.2.1.tgz dest=files/solr-4.2.1.tgz
 
     - name: install solr-4.2.1
       unarchive: src=files/solr-4.2.1.tgz dest=/opt
@@ -51,17 +52,21 @@
         - files/solr/*
 
     # Specify Web Portal
-    - name: download specify web portal
-      local_action: get_url url=http://update.specifysoftware.org/TheSpecifyWebPortal.zip dest=files/TheSpecifyWebPortal.zip
+    # - name: download specify web portal
+    #   connection: local
+    #   get_url: url=http://update.specifysoftware.org/TheSpecifyWebPortal.zip dest=files/TheSpecifyWebPortal.zip
 
     - name: install specify web portal
-      unarchive: src=files/TheSpecifyWebPortal.zip dest=/var/www/html
+      unarchive: src=files/TheSpecifyWebPortal.zip dest=/tmp
+
+    - name: move specify web portal files
+      raw: sudo cp -R /tmp/PortalApp/* /var/www/html
 
     - name: move settings.json
-      copy: src=files/settings.json dest=/var/www/html/PortalApp/resources/config
+      copy: src=files/settings.json dest=/var/www/html/resources/config
 
     - name: move fldmodel.json
-      copy: src=files/flds.json dest=/var/www/html/PortalApp/resources/config/fldmodel.json
+      copy: src=files/flds.json dest=/var/www/html/resources/config/fldmodel.json
 
     - name: move and start specify-web-portal service
       copy: src=files/specify-web-portal.conf dest=/etc/init/specify-web-portal.conf mode=0644
