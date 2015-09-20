@@ -12,5 +12,7 @@
 
 5) Make sure the server is setup in /etc/ansible/hosts.
 
-6) Run:
+6) Make sure the public key is on the hosts
+
+7) Run:
 `ansible-playbook playbook.yml`
