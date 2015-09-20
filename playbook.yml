@@ -1,13 +1,15 @@
 ---
 - hosts: all
+  vars:
+    username: vagrant
   sudo: yes
   tasks:
     # Terminal coloring
     - name: move .bashrc
-      copy: src=files/bashrc dest=/home/vagrant/.bashrc force=yes
+      copy: src=files/bashrc dest=/home/{{ username }}/.bashrc force=yes
 
     - name: source .bashrc
-      raw: source /home/vagrant/.bashrc
+      shell: . /home/{{ username }}/.bashrc
 
     # Unzip
     - name: install unzip
@@ -60,7 +62,7 @@
       unarchive: src=files/TheSpecifyWebPortal.zip dest=/tmp
 
     - name: move specify web portal files
-      command: /bin/cp -R /tmp/PortalApp/* /var/www/html
+      shell: /bin/cp -R /tmp/PortalApp/* /var/www/html
 
     - name: move settings.json
       copy: src=files/settings.json dest=/var/www/html/resources/config
