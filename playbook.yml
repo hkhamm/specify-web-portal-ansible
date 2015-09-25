@@ -2,81 +2,99 @@
 - hosts: all
   vars:
     username: vagrant
+    webroot: /var/lib/tomcat7/webapps/ROOT
   sudo: yes
   tasks:
-    # Terminal coloring
-    - name: move .bashrc
-      copy: src=files/bashrc dest=/home/{{ username }}/.bashrc force=yes
+    - name: terminal coloring - move .bashrc
+      sudo: no
+      copy: src=files/bashrc dest=/home/{{ username }}/.bashrc
 
-    - name: source .bashrc
+    - name: terminal coloring - source .bashrc
+      sudo: no
       shell: . /home/{{ username }}/.bashrc
 
-    # Unzip
-    - name: install unzip
-      apt: pkg=unzip state=latest
+    - name: apt-get - update/upgrade
+      apt: upgrade=dist
 
-    # Java
-    - name: install java
-      apt: pkg=openjdk-7-jdk state=latest
+    - name: apt-get - install pkgs
+      apt: pkg={{ item }} state=latest
+      with_items:
+        - default-jdk
+        - tomcat7
+        - authbind
+        - unzip
+        - git-core
 
-    - name: make /usr/java directory
-      file: dest=/usr/java state=directory
+    - name: tomcat - set tomcat to serve on port 80
+      copy: src=files/server.xml dest=/var/lib/tomcat7/conf/server.xml
+            mode=0644 owner=root group=tomcat7
 
-    - name: link java to /usr/java/default
-      file: src=/usr/lib/jvm/java-7-openjdk-amd64 dest=/usr/java/default state=link
+    - name: tomcat - turn on authbind in tomcat7
+      copy: src=files/tomcat7 dest=/etc/default/tomcat7
+            mode=0644 owner=root group=root
 
-    # Apache 2
-    - name: ensure apache2 is at the latest version
-      apt: pkg=apache2 state=latest
+    - name: tomcat - provide tomcat7 read+execute on port 80
+      file: dest=/etc/authbind/byport/80 state=touch mode=0500 owner=tomcat7
+
+    - name: tomcat - make /home/{{ username }}/data
+      file: dest=/home/{{ username }}/data state=directory mode=0766
+
+    - name: tomcat - download ipt.war
+      get_url: url=http://repository.gbif.org/content/groups/gbif/org/gbif/ipt/2.3.1/ipt-2.3.1.war
+               dest=/var/lib/tomcat7/webapps/ipt.war
       notify:
-      - restart apache2
+        - restart tomcat7
 
-    # Solr
-    - name: download solr-4.2.1
+    - name: solr - download solr-4.2.1
       sudo: no
-      local_action: get_url url=https://archive.apache.org/dist/lucene/solr/4.2.1/solr-4.2.1.tgz dest=files/solr-4.2.1.tgz
+      local_action: get_url
+          url=https://archive.apache.org/dist/lucene/solr/4.2.1/solr-4.2.1.tgz
+          dest=files/solr-4.2.1.tgz
 
-    - name: install solr-4.2.1
+    - name: solr - install solr-4.2.1
       unarchive: src=files/solr-4.2.1.tgz dest=/opt
 
-    - name: move schema.xml
+    - name: solr - move schema.xml
       copy: src=files/schema.xml dest=/opt/solr-4.2.1/example/solr/collection1/conf
 
-    - name: move solrconfig.xml
+    - name: solr - move solrconfig.xml
       copy: src=files/solrconfig.xml dest=/opt/solr-4.2.1/example/solr/collection1/conf
 
-    - name: make data/index directory
+    - name: solr - make data/index directory
       file: dest=/opt/solr-4.2.1/example/solr/collection1/data/index state=directory
 
-    - name: move solr files
+    - name: solr - move solr files
       copy: src={{ item }} dest=/opt/solr-4.2.1/example/solr/collection1/data/index
       with_fileglob:
         - files/solr/*
 
-    # Specify Web Portal
-    - name: download specify web portal
+    - name: specify - download specify web portal
       sudo: no
-      local_action: get_url url=http://update.specifysoftware.org/TheSpecifyWebPortal.zip dest=files/TheSpecifyWebPortal.zip
+      local_action: get_url
+        url=http://update.specifysoftware.org/TheSpecifyWebPortal.zip
+        dest=files/TheSpecifyWebPortal.zip
 
-    - name: install specify web portal
+    - name: specify - install specify web portal
       unarchive: src=files/TheSpecifyWebPortal.zip dest=/tmp
 
-    - name: move specify web portal files
-      shell: /bin/cp -R /tmp/PortalApp/* /var/www/html
+    - name: specify - move specify web portal files
+      shell: /bin/cp -R /tmp/PortalApp/* {{ webroot }}
 
-    - name: move settings.json
-      copy: src=files/settings.json dest=/var/www/html/resources/config
+    - name: specify - move settings.json
+      copy: src=files/settings.json dest={{ webroot }}/resources/config
 
-    - name: move fldmodel.json
-      copy: src=files/flds.json dest=/var/www/html/resources/config/fldmodel.json
+    - name: specify - move fldmodel.json
+      copy: src=files/flds.json dest={{ webroot }}/resources/config/fldmodel.json
 
-    - name: move and start specify-web-portal service
-      copy: src=files/specify-web-portal.conf dest=/etc/init/specify-web-portal.conf mode=0644
+    - name: specify - move and start specify-web-portal service
+      copy: src=files/specify-web-portal.conf dest=/etc/init/specify-web-portal.conf
+            mode=0644
       notify:
-      - restart specify-web-portal
+        - restart specify-web-portal
 
   handlers:
-    - name: restart apache2
-      service: name=apache2 state=restarted
     - name: restart specify-web-portal
       service: name=specify-web-portal state=restarted
+
+    - name: restart tomcat7
+      service: name=tomcat7 state=restarted
