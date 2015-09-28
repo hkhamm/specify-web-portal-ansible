@@ -1,7 +1,7 @@
 ---
-- hosts: all
+- hosts: paleo
   vars:
-    username: vagrant
+    username: hkhamm
     webroot: /var/lib/tomcat7/webapps/ROOT
   sudo: yes
   tasks:
@@ -74,7 +74,7 @@
         url=http://update.specifysoftware.org/TheSpecifyWebPortal.zip
         dest=files/TheSpecifyWebPortal.zip
 
-    - name: specify - install specify web portal
+    - name: specify - unarchive specify web portal
       unarchive: src=files/TheSpecifyWebPortal.zip dest=/tmp
 
     - name: specify - move specify web portal files

@@ -1,7 +1,7 @@
 [{
     "portalInstance": "8fe497ca-6857-4fc6-8720-b7852649dde5",
-    "solrURL": "http://127.0.0.1",
-    "solrPort": "4433",
+    "solrURL": "http://184.171.104.219",
+    "solrPort": "443",
     "solrCore": "solr",
     "solrPageSize": 50,
     "maxSolrPageSize": 5000,
