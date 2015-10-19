@@ -36,10 +36,11 @@
     - name: tomcat - provide tomcat7 read+execute on port 80
       file: dest=/etc/authbind/byport/80 state=touch mode=0500 owner=tomcat7
 
-    - name: tomcat - make /home/{{ username }}/data
-      file: dest=/home/{{ username }}/data state=directory mode=0766
+    - name: ipt - make /usr/data
+      file: dest=/usr/data state=directory mode=0755
+            owner=tomcat7 group=tomcat7
 
-    - name: tomcat - download ipt.war
+    - name: ipt - download ipt.war
       get_url: url=http://repository.gbif.org/content/groups/gbif/org/gbif/ipt/2.3.1/ipt-2.3.1.war
                dest=/var/lib/tomcat7/webapps/ipt.war
       notify:
